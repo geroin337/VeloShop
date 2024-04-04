@@ -1,29 +1,36 @@
-name: Syntax Check 
+name: lint  # Название workflow, в данном случае - "lint".
 
-on:
-  push: 
-    branches:
-      - main in
+on:  # Определяем, когда должен запускаться workflow.
+  push:  # Запускать при каждом push в репозиторий.
+    branches:  # Ветки, на которые распространяется событие.
+      - '*'  # Звездочка означает любую ветку.
 
-jobs:
-  syntax-check: 
-    runs-on: windows-latest 
+env:  # Определяем переменные среды, которые будут использоваться в рамках workflow.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1  # Пропуск первоначального опыта .NET.
+  DOTNET_NOLOGO: true  # Отключение логотипа при использовании .NET.
 
-    steps: 
+defaults:  # Здесь задаются значения по умолчанию для шагов в рамках jobs.
+  run:  # Устанавливаем общий для всех шагов shell.
+    shell: pwsh  # Используем PowerShell.
 
-    - name: Checkout repository 
-      uses: actions/checkout@v2 
+jobs:  # Определяем список задач, которые должны быть выполнены в рамках workflow.
+  lint_csharp:  # Название задачи.
+    runs-on: windows-2019  # Задаем операционную систему для выполнения задачи.
 
-    - name: Setup .NET Core 
-      uses: actions/setup-dotnet@v1 
-      with:
-        dotnet-version: '6.0.x' 
+    steps:  # Определяем список шагов, которые должны быть выполнены в рамках задачи.
+      - name: Checkout repository  # Шаг для проверки кода из репозитория.
+        uses: actions/checkout@v2
 
-    - name: Restore dependencies 
-      run: dotnet restore 
+      - name: Setup .NET Core  # Установка и настройка .NET Core.
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '5.0.x'  # Указываем версию .NET Core.
 
-    - name: Install NuGet package 
-      run: dotnet add VeloShop/VeloShop.csproj package Microsoft.CodeAnalysis.NetAnalyzers --version 8.0.0 
+      - name: Add dotnet-format problem matcher  # Добавляем problem matcher для dotnet-format.
+        uses: xt0rted/dotnet-format-problem-matcher@v1
 
-    - name: Run Roslyn Analyzers 
-      run: dotnet build VeloShop/VeloShop.csproj /p:WarningLevel=6 /p:DebugType=None /p:DebugSymbols=false /p:Platform="Any CPU" /p:TreatWarningsAsErrors=true 
+      - name: Install dotnet format  # Установка инструмента dotnet-format.
+        run: dotnet tool update --global dotnet-format
+
+      - name: Run dotnet format  # Запуск dotnet-format для проверки форматирования.
+        run: dotnet format --check --verbosity diagnostic  # Параметры: --check для проверки, --verbosity diagnostic для подробных отчетов.
