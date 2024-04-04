@@ -1,33 +1,36 @@
-name: lint
-on:
-  push:
-    branches:
-      - '*'
+name: lint  # Название workflow, в данном случае - "lint".
 
-env:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_NOLOGO: true
+on:  # Определяем, когда должен запускаться workflow.
+  push:  # Запускать при каждом push в репозиторий.
+    branches:  # Ветки, на которые распространяется событие.
+      - 'main'
 
-defaults:
-  run:
-    shell: pwsh
+env:  # Определяем переменные среды, которые будут использоваться в рамках workflow.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1  # Пропуск первоначального опыта .NET.
+  DOTNET_NOLOGO: true  # Отключение логотипа при использовании .NET.
 
-jobs:
-  lint_csharp:
-    runs-on: windows-2019
-    steps:
-    - uses: actions/checkout@v2
+defaults:  # Здесь задаются значения по умолчанию для шагов в рамках jobs.
+  run:  # Устанавливаем общий для всех шагов shell.
+    shell: pwsh  # Используем PowerShell.
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '5.0.x' 
+jobs:  # Определяем список задач, которые должны быть выполнены в рамках workflow.
+  lint_csharp:  # Название задачи.
+    runs-on: windows-2019  # Задаем операционную систему для выполнения задачи.
 
-    - name: Add dotnet-format problem matcher
-      uses: xt0rted/dotnet-format-problem-matcher@v1
+    steps:  # Определяем список шагов, которые должны быть выполнены в рамках задачи.
+      - name: Checkout repository  # Шаг для проверки кода из репозитория.
+        uses: actions/checkout@v2
 
-    - name: Install dotnet format
-      run: dotnet tool update --global dotnet-format
+      - name: Setup .NET Core  # Установка и настройка .NET Core.
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '5.0.x'  # Указываем версию .NET Core.
 
-    - name: Run dotnet format
-      run: dotnet format --check --verbosity diagnostic
+      - name: Add dotnet-format problem matcher  # Добавляем problem matcher для dotnet-format.
+        uses: xt0rted/dotnet-format-problem-matcher@v1
+
+      - name: Install dotnet format  # Установка инструмента dotnet-format.
+        run: dotnet tool update --global dotnet-format
+
+      - name: Run dotnet format  # Запуск dotnet-format для проверки форматирования.
+        run: dotnet format --check --verbosity diagnostic  # Параметры: --check для проверки, --verbosity diagnostic для подробных отчетов.
