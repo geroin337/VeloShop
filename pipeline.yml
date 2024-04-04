@@ -1,29 +1,33 @@
-﻿name: Syntax Check 
-
+name: lint
 on:
-  push: 
+  push:
     branches:
-      - main in
+      - '*'
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+
+defaults:
+  run:
+    shell: pwsh
 
 jobs:
-  syntax-check: 
-    runs-on: windows-latest 
+  lint_csharp:
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
 
-    steps: 
-
-    - name: Checkout repository 
-      uses: actions/checkout@v2 
-
-    - name: Setup .NET Core 
-      uses: actions/setup-dotnet@v1 
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '6.0.x' 
+        dotnet-version: '5.0.x' 
 
-    - name: Restore dependencies 
-      run: dotnet restore 
+    - name: Add dotnet-format problem matcher
+      uses: xt0rted/dotnet-format-problem-matcher@v1
 
-    - name: Install NuGet package 
-      run: dotnet add VeloShop/VeloShop.csproj package Microsoft.CodeAnalysis.NetAnalyzers --version 8.0.0 
+    - name: Install dotnet format
+      run: dotnet tool update --global dotnet-format
 
-    - name: Run Roslyn Analyzers 
-      run: dotnet build VeloShop/VeloShop.csproj /p:WarningLevel=6 /p:DebugType=None /p:DebugSymbols=false /p:Platform="Any CPU" /p:TreatWarningsAsErrors=true 
+    - name: Run dotnet format
+      run: dotnet format --check --verbosity diagnostic
